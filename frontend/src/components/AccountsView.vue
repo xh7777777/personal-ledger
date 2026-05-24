@@ -1,0 +1,39 @@
+<script setup>
+defineProps({
+  ledger: {
+    type: Object,
+    required: true
+  }
+});
+</script>
+
+<template>
+  <section class="view">
+    <div class="panel">
+      <div class="section-heading">
+        <div>
+          <h2>账户</h2>
+          <p>维护现金、银行卡等本地账户</p>
+        </div>
+        <button class="secondary-button" @click="ledger.openAccountModal()">新增账户</button>
+      </div>
+      <div v-if="!ledger.state.accounts.length" class="empty-state compact">至少需要一个账户才能新增流水</div>
+      <div v-else class="account-grid">
+        <article v-for="account in ledger.state.accounts" :key="account.id" class="account-card">
+          <div class="account-card-header">
+            <div>
+              <div class="account-name" :title="account.name">{{ account.name }}</div>
+              <div class="account-meta">{{ account.type }}<span v-if="account.note"> · {{ account.note }}</span></div>
+            </div>
+            <div class="account-balance">{{ ledger.money(account.currentBalance) }}</div>
+          </div>
+          <div class="account-meta">初始金额 {{ ledger.money(account.initialBalance) }}</div>
+          <div class="account-actions">
+            <button class="text-button" @click="ledger.openAccountModal(account)">编辑</button>
+            <button class="text-button delete" @click="ledger.deleteAccount(account.id)">删除</button>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+</template>
