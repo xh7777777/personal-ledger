@@ -1,6 +1,6 @@
 import { computed, onMounted, reactive } from "vue";
 import { ledgerApi } from "../api/ledger";
-import { categoryDisplay, defaultCategory, rangeLabels } from "../constants/ledger";
+import { accountDisplay, categoryDisplay, defaultCategory, rangeLabels } from "../constants/ledger";
 import { makeTrendBuckets, todayIso, transactionMatchesRange } from "../utils/date";
 import { money } from "../utils/format";
 import { sortTransactions } from "../utils/transactions";
@@ -106,6 +106,10 @@ export function useLedger() {
 
   function accountName(id) {
     return state.accounts.find((account) => account.id === id)?.name || "已删除账户";
+  }
+
+  function accountMeta(type) {
+    return accountDisplay(type);
   }
 
   function rangeLabel() {
@@ -241,6 +245,7 @@ export function useLedger() {
     trendRows,
     money,
     accountName,
+    accountMeta,
     rangeLabel,
     setView,
     openTransactionModal,

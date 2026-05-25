@@ -1,3 +1,6 @@
+import alipayIcon from "../assets/accounts/alipay.svg";
+import wechatIcon from "../assets/accounts/wechat.svg";
+
 export const rangeOptions = [
   { value: "day", label: "日" },
   { value: "week", label: "周" },
@@ -6,7 +9,23 @@ export const rangeOptions = [
   { value: "custom", label: "自定义" }
 ];
 
-export const accountTypes = ["现金", "银行卡", "储蓄", "其他"];
+export const accountPresets = [
+  { type: "现金", label: "现金", icon: "¥", tone: "cash", brand: "" },
+  { type: "微信", label: "微信", icon: "", iconUrl: wechatIcon, tone: "wechat", brand: "WeChat Pay" },
+  { type: "支付宝", label: "支付宝", icon: "", iconUrl: alipayIcon, tone: "alipay", brand: "Alipay" },
+  { type: "信用卡", label: "信用卡", icon: "✦", tone: "credit", brand: "Credit Card" },
+  { type: "储蓄卡", label: "储蓄卡", icon: "◆", tone: "debit", brand: "Debit Card" },
+  { type: "银行卡", label: "银行卡", icon: "▣", tone: "bank", brand: "Bank Card" },
+  { type: "储蓄", label: "储蓄", icon: "◈", tone: "saving", brand: "Savings" },
+  { type: "其他", label: "其他", icon: "◇", tone: "other", brand: "Ledger" }
+];
+
+export const accountTypes = accountPresets.map((account) => account.type);
+
+export function accountDisplay(type) {
+  const normalized = String(type || "").trim() || "现金";
+  return accountPresets.find((account) => account.type === normalized) || { type: normalized, label: normalized, icon: "◇", tone: "other", brand: "Ledger" };
+}
 
 export const rangeLabels = {
   day: "今日",

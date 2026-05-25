@@ -1,7 +1,7 @@
 <script setup>
-import { accountTypes } from "../../constants/ledger";
+import { accountPresets } from "../../constants/ledger";
 
-defineProps({
+const props = defineProps({
   error: {
     type: String,
     default: ""
@@ -17,6 +17,12 @@ defineProps({
 });
 
 const emit = defineEmits(["close", "submit"]);
+
+function selectPreset(account) {
+  const presetNames = accountPresets.map((item) => item.label);
+  if (!props.form.name || presetNames.includes(props.form.name)) props.form.name = account.label;
+  props.form.type = account.type;
+}
 </script>
 
 <template>
@@ -31,12 +37,31 @@ const emit = defineEmits(["close", "submit"]);
       </div>
       <div class="form-grid">
         <label><span>账户名称</span><input v-model="form.name" required placeholder="现金、招商银行卡" /></label>
-        <label>
-          <span>账户类型</span>
-          <select v-model="form.type">
-            <option v-for="type in accountTypes" :key="type">{{ type }}</option>
-          </select>
-        </label>
+        <div class="full-field account-preset-field">
+          <div class="field-label-row">
+            <span>账户类型</span>
+            <span class="field-hint">选择常用账户，名称可继续自定义</span>
+          </div>
+          <div class="account-preset-grid">
+            <button
+              v-for="account in accountPresets"
+              :key="account.type"
+              type="button"
+              class="account-preset-button"
+              :class="[`wallet-${account.tone}`, { 'is-active': form.type === account.type }]"
+              @click="selectPreset(account)"
+            >
+              <span class="account-preset-icon">
+                <img v-if="account.iconUrl" :src="account.iconUrl" :alt="account.label" />
+                <span v-else>{{ account.icon }}</span>
+              </span>
+              <span>
+                <strong>{{ account.label }}</strong>
+                <small>{{ account.brand }}</small>
+              </span>
+            </button>
+          </div>
+        </div>
         <label><span>初始金额</span><input v-model="form.initialBalance" type="number" step="0.01" required placeholder="0.00" /></label>
         <label class="full-field"><span>备注</span><textarea v-model="form.note" rows="3" placeholder="可选"></textarea></label>
       </div>
