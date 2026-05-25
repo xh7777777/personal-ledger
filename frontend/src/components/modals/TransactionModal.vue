@@ -1,5 +1,10 @@
 <script setup>
-defineProps({
+import { computed } from "vue";
+import { categoryPresets, defaultCategory } from "../../constants/ledger";
+
+const emit = defineEmits(["close", "submit"]);
+
+const props = defineProps({
   accounts: {
     type: Array,
     required: true
@@ -18,7 +23,16 @@ defineProps({
   }
 });
 
-const emit = defineEmits(["close", "submit"]);
+const visibleCategories = computed(() => [defaultCategory, ...(categoryPresets[props.form.type] || [])]);
+
+function selectCategory(category) {
+  props.form.category = category.name === defaultCategory.name ? "" : category.name;
+}
+
+function isSelected(category) {
+  const value = props.form.category.trim() || defaultCategory.name;
+  return value === category.name;
+}
 </script>
 
 <template>
@@ -44,7 +58,29 @@ const emit = defineEmits(["close", "submit"]);
             <option v-for="account in accounts" :key="account.id" :value="account.id">{{ account.name }}</option>
           </select>
         </label>
-        <label><span>分类</span><input v-model="form.category" required placeholder="餐饮、工资、交通" /></label>
+        <div class="full-field category-field">
+          <div class="field-label-row">
+            <span>分类</span>
+            <span class="field-hint">可不选，保存为未分类</span>
+          </div>
+          <div class="category-picker">
+            <button
+              v-for="category in visibleCategories"
+              :key="category.name"
+              type="button"
+              class="category-chip"
+              :class="[`tone-${category.tone}`, { 'is-active': isSelected(category) }]"
+              @click="selectCategory(category)"
+            >
+              <span class="category-icon">{{ category.icon }}</span>
+              <span class="category-chip-text">{{ category.name }}</span>
+            </button>
+          </div>
+          <label class="custom-category">
+            <span>自定义分类</span>
+            <input v-model="form.category" placeholder="输入自己的分类，或留空使用未分类" />
+          </label>
+        </div>
         <label class="full-field"><span>对象/地点/用途</span><input v-model="form.target" placeholder="例如：便利店、房租、项目奖金" /></label>
         <label class="full-field"><span>备注</span><textarea v-model="form.note" rows="3" placeholder="可选"></textarea></label>
       </div>

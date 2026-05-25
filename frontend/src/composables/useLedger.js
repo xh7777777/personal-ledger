@@ -1,6 +1,6 @@
 import { computed, onMounted, reactive } from "vue";
 import { ledgerApi } from "../api/ledger";
-import { rangeLabels } from "../constants/ledger";
+import { categoryDisplay, defaultCategory, rangeLabels } from "../constants/ledger";
 import { makeTrendBuckets, todayIso, transactionMatchesRange } from "../utils/date";
 import { money } from "../utils/format";
 import { sortTransactions } from "../utils/transactions";
@@ -58,7 +58,8 @@ export function useLedger() {
   const periodNet = computed(() => periodIncome.value - periodExpense.value);
   const incomeCount = computed(() => scopedTransactions.value.filter((item) => item.type === "income").length);
   const expenseCount = computed(() => scopedTransactions.value.filter((item) => item.type === "expense").length);
-  const recentTransactions = computed(() => [...state.transactions].sort(sortTransactions).slice(0, 8));
+  const withCategoryMeta = (transaction) => ({ ...transaction, categoryMeta: categoryDisplay(transaction.category) });
+  const recentTransactions = computed(() => [...state.transactions].sort(sortTransactions).slice(0, 8).map(withCategoryMeta));
 
   const filteredTransactions = computed(() => {
     const keyword = state.filters.keyword.trim().toLowerCase();
@@ -67,21 +68,24 @@ export function useLedger() {
       .filter((transaction) => state.filters.accountId === "all" || transaction.accountId === state.filters.accountId)
       .filter((transaction) => {
         if (!keyword) return true;
-        return [transaction.category, transaction.target, transaction.note].filter(Boolean).some((value) => value.toLowerCase().includes(keyword));
+        const category = categoryDisplay(transaction.category).name;
+        return [category, transaction.target, transaction.note].filter(Boolean).some((value) => value.toLowerCase().includes(keyword));
       })
-      .sort(sortTransactions);
+      .sort(sortTransactions)
+      .map(withCategoryMeta);
   });
 
   const categoryRows = computed(() => {
     const totals = scopedTransactions.value
       .filter((item) => item.type === "expense")
       .reduce((map, item) => {
-        map[item.category] = (map[item.category] || 0) + item.amount;
+        const category = item.category || defaultCategory.name;
+        map[category] = (map[category] || 0) + item.amount;
         return map;
       }, {});
     const rows = Object.entries(totals).sort((a, b) => b[1] - a[1]);
     const max = Math.max(...rows.map(([, amount]) => amount), 1);
-    return rows.map(([name, amount]) => ({ name, amount, width: `${Math.max((amount / max) * 100, 3)}%` }));
+    return rows.map(([name, amount]) => ({ ...categoryDisplay(name), amount, width: `${Math.max((amount / max) * 100, 3)}%` }));
   });
 
   const trendRows = computed(() => {
@@ -156,7 +160,7 @@ export function useLedger() {
         amount: Number(transactionForm.amount),
         date: transactionForm.date,
         accountId: transactionForm.accountId,
-        category: transactionForm.category,
+        category: transactionForm.category.trim() || defaultCategory.name,
         target: transactionForm.target,
         note: transactionForm.note
       };

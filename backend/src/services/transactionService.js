@@ -4,6 +4,12 @@ import { roundMoney } from "../utils/money.js";
 import { applyTransaction } from "../utils/transactions.js";
 import { validateTransactionInput } from "../validators/transactions.js";
 
+const DEFAULT_CATEGORY = "未分类";
+
+function normalizeCategory(category) {
+  return String(category || "").trim() || DEFAULT_CATEGORY;
+}
+
 export async function createTransaction(input) {
   const error = validateTransactionInput(input);
   if (error) return { error, status: 400 };
@@ -20,7 +26,7 @@ export async function createTransaction(input) {
     amount: roundMoney(input.amount),
     date: input.date,
     accountId: input.accountId,
-    category: String(input.category || "").trim(),
+    category: normalizeCategory(input.category),
     target: String(input.target || "").trim(),
     note: String(input.note || "").trim(),
     createdAt: now,
@@ -51,7 +57,7 @@ export async function updateTransaction(id, input) {
     amount: roundMoney(input.amount),
     date: input.date,
     accountId: input.accountId,
-    category: String(input.category || "").trim(),
+    category: normalizeCategory(input.category),
     target: String(input.target || "").trim(),
     note: String(input.note || "").trim(),
     updatedAt: new Date().toISOString()

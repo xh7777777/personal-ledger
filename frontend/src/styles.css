@@ -362,6 +362,83 @@ textarea:focus {
   white-space: nowrap;
 }
 
+.category-label,
+.recent-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.category-label {
+  font-weight: 800;
+}
+
+.table-category {
+  display: flex;
+}
+
+.category-icon-badge,
+.category-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 8px;
+  background: #f1f3f5;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.tone-food {
+  background: #fff1d8;
+}
+
+.tone-shopping {
+  background: #ffe5ec;
+}
+
+.tone-home {
+  background: #e8f2e7;
+}
+
+.tone-travel {
+  background: #dff1ff;
+}
+
+.tone-tech {
+  background: #e8e7ff;
+}
+
+.tone-care {
+  background: #e2f7f1;
+}
+
+.tone-study {
+  background: #fff4bd;
+}
+
+.tone-fun {
+  background: #f3e6ff;
+}
+
+.tone-gift {
+  background: #ffe8d6;
+}
+
+.tone-finance {
+  background: #dff5dd;
+}
+
+.tone-neutral,
+.tone-custom {
+  background: #eeeeee;
+}
+
 .category-amount,
 .recent-amount,
 .account-balance {
@@ -385,6 +462,10 @@ textarea:focus {
 .recent-item {
   border-top: 1px solid var(--border);
   padding-top: 9px;
+}
+
+.recent-main {
+  min-width: 0;
 }
 
 .recent-item:first-child {
@@ -549,6 +630,66 @@ td {
   margin-top: 9px;
   color: var(--negative);
   font-size: 13px;
+}
+
+.category-field {
+  display: grid;
+  gap: 9px;
+}
+
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.field-label-row span:first-child,
+.custom-category span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.field-hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.category-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: 8px;
+}
+
+.category-chip {
+  min-width: 0;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  color: var(--text);
+  text-align: left;
+}
+
+.category-chip.is-active {
+  border-color: var(--black);
+  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
+}
+
+.category-chip-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.custom-category {
+  margin-top: 2px;
 }
 
 .modal-actions {

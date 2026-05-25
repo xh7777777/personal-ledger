@@ -23,7 +23,10 @@ defineProps({
     <div v-else class="category-list">
       <div v-for="item in rows" :key="item.name" class="category-row">
         <div class="category-row-top">
-          <span class="category-name" :title="item.name">{{ item.name }}</span>
+          <span class="category-label" :title="item.name">
+            <span class="category-icon-badge" :class="`tone-${item.tone}`">{{ item.icon }}</span>
+            <span class="category-name">{{ item.name }}</span>
+          </span>
           <span class="category-amount">{{ money(item.amount) }}</span>
         </div>
         <div class="progress-track"><div class="progress-fill" :style="{ width: item.width }"></div></div>

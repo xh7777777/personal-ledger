@@ -47,7 +47,12 @@ defineProps({
               <td>{{ transaction.type === "income" ? "收入" : "支出" }}</td>
               <td :class="transaction.type === 'income' ? 'positive' : 'negative'">{{ ledger.money(transaction.amount) }}</td>
               <td><span class="cell-text" :title="ledger.accountName(transaction.accountId)">{{ ledger.accountName(transaction.accountId) }}</span></td>
-              <td><span class="cell-text" :title="transaction.category">{{ transaction.category }}</span></td>
+              <td>
+                <span class="category-label table-category" :title="transaction.categoryMeta.name">
+                  <span class="category-icon-badge" :class="`tone-${transaction.categoryMeta.tone}`">{{ transaction.categoryMeta.icon }}</span>
+                  <span class="category-name">{{ transaction.categoryMeta.name }}</span>
+                </span>
+              </td>
               <td><span class="cell-text" :title="transaction.target">{{ transaction.target || "-" }}</span></td>
               <td><span class="cell-text" :title="transaction.note">{{ transaction.note || "-" }}</span></td>
               <td>
