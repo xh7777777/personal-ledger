@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { categoryPresets, defaultCategory } from "../../constants/ledger";
 
 const emit = defineEmits(["close", "submit"]);
@@ -24,6 +24,15 @@ const props = defineProps({
 });
 
 const visibleCategories = computed(() => [defaultCategory, ...(categoryPresets[props.form.type] || [])]);
+const categoryExpanded = ref(false);
+const hasMoreCategories = computed(() => visibleCategories.value.length > 4);
+
+watch(
+  () => props.form.type,
+  () => {
+    categoryExpanded.value = false;
+  }
+);
 
 function selectCategory(category) {
   props.form.category = category.name === defaultCategory.name ? "" : category.name;
@@ -63,19 +72,24 @@ function isSelected(category) {
             <span>分类</span>
             <span class="field-hint">可不选，保存为未分类</span>
           </div>
-          <div class="category-picker">
-            <button
-              v-for="category in visibleCategories"
-              :key="category.name"
-              type="button"
-              class="category-chip"
-              :class="[`tone-${category.tone}`, { 'is-active': isSelected(category) }]"
-              @click="selectCategory(category)"
-            >
-              <span class="category-icon">{{ category.icon }}</span>
-              <span class="category-chip-text">{{ category.name }}</span>
-            </button>
+          <div class="category-picker-wrap" :class="{ 'is-expanded': categoryExpanded, 'has-more': hasMoreCategories }">
+            <div class="category-picker">
+              <button
+                v-for="category in visibleCategories"
+                :key="category.name"
+                type="button"
+                class="category-chip"
+                :class="[`tone-${category.tone}`, { 'is-active': isSelected(category) }]"
+                @click="selectCategory(category)"
+              >
+                <span class="category-icon">{{ category.icon }}</span>
+                <span class="category-chip-text">{{ category.name }}</span>
+              </button>
+            </div>
           </div>
+          <button v-if="hasMoreCategories" class="category-expand-button" type="button" @click="categoryExpanded = !categoryExpanded">
+            {{ categoryExpanded ? "收起分类" : "展开更多分类" }}
+          </button>
           <label class="custom-category">
             <span>自定义分类</span>
             <input v-model="form.category" placeholder="输入自己的分类，或留空使用未分类" />
