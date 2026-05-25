@@ -35,6 +35,14 @@ export const rangeLabels = {
   custom: "自定义范围"
 };
 
+export const scheduleFrequencyOptions = [
+  { value: "daily", label: "每天" },
+  { value: "weekly", label: "每周" },
+  { value: "monthly", label: "每月" }
+];
+
+export const scheduleFrequencyLabels = Object.fromEntries(scheduleFrequencyOptions.map((item) => [item.value, item.label]));
+
 export const defaultCategory = {
   name: "未分类",
   icon: "◇",

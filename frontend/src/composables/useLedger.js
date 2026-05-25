@@ -1,6 +1,6 @@
 import { computed, onMounted, reactive } from "vue";
 import { ledgerApi } from "../api/ledger";
-import { accountDisplay, categoryDisplay, defaultCategory, rangeLabels } from "../constants/ledger";
+import { accountDisplay, categoryDisplay, defaultCategory, rangeLabels, scheduleFrequencyLabels } from "../constants/ledger";
 import { makeTrendBuckets, todayIso, transactionMatchesRange } from "../utils/date";
 import { money } from "../utils/format";
 import { sortTransactions } from "../utils/transactions";
@@ -9,6 +9,7 @@ export function useLedger() {
   const state = reactive({
     accounts: [],
     transactions: [],
+    schedules: [],
     loading: true,
     error: "",
     activeView: "dashboard",
@@ -24,7 +25,8 @@ export function useLedger() {
 
   const ui = reactive({
     transactionModalOpen: false,
-    accountModalOpen: false
+    accountModalOpen: false,
+    scheduleModalOpen: false
   });
 
   const transactionForm = reactive({
@@ -46,9 +48,24 @@ export function useLedger() {
     note: ""
   });
 
+  const scheduleForm = reactive({
+    id: "",
+    type: "expense",
+    amount: "",
+    accountId: "",
+    category: "",
+    target: "",
+    note: "",
+    frequency: "monthly",
+    startDate: todayIso(),
+    nextRunDate: "",
+    active: true
+  });
+
   const errors = reactive({
     transaction: "",
-    account: ""
+    account: "",
+    schedule: ""
   });
 
   const totalBalance = computed(() => state.accounts.reduce((sum, account) => sum + Number(account.currentBalance || 0), 0));
@@ -74,6 +91,17 @@ export function useLedger() {
       .sort(sortTransactions)
       .map(withCategoryMeta);
   });
+
+  const scheduleRows = computed(() =>
+    [...state.schedules]
+      .sort((a, b) => String(a.nextRunDate || a.startDate).localeCompare(String(b.nextRunDate || b.startDate)))
+      .map((schedule) => ({
+        ...schedule,
+        categoryMeta: categoryDisplay(schedule.category),
+        frequencyLabel: scheduleFrequencyLabels[schedule.frequency] || schedule.frequency,
+        accountName: accountName(schedule.accountId)
+      }))
+  );
 
   const categoryRows = computed(() => {
     const totals = scopedTransactions.value
@@ -127,6 +155,7 @@ export function useLedger() {
       const data = await ledgerApi.getState();
       state.accounts = data.accounts;
       state.transactions = data.transactions;
+      state.schedules = data.schedules || [];
     } catch (error) {
       state.error = error.message;
     } finally {
@@ -183,6 +212,66 @@ export function useLedger() {
     await loadState();
   }
 
+  function resetScheduleForm(schedule = null) {
+    errors.schedule = "";
+    scheduleForm.id = schedule?.id || "";
+    scheduleForm.type = schedule?.type || "expense";
+    scheduleForm.amount = schedule?.amount || "";
+    scheduleForm.accountId = schedule?.accountId || state.accounts[0]?.id || "";
+    scheduleForm.category = schedule?.category || "";
+    scheduleForm.target = schedule?.target || "";
+    scheduleForm.note = schedule?.note || "";
+    scheduleForm.frequency = schedule?.frequency || "monthly";
+    scheduleForm.startDate = schedule?.startDate || todayIso();
+    scheduleForm.nextRunDate = schedule?.nextRunDate || "";
+    scheduleForm.active = schedule?.active ?? true;
+  }
+
+  function openScheduleModal(schedule = null) {
+    if (!state.accounts.length) {
+      openAccountModal();
+      errors.account = "请先新增一个账户。";
+      return;
+    }
+    resetScheduleForm(schedule);
+    ui.scheduleModalOpen = true;
+  }
+
+  async function saveSchedule() {
+    errors.schedule = "";
+    try {
+      const payload = {
+        type: scheduleForm.type,
+        amount: Number(scheduleForm.amount),
+        accountId: scheduleForm.accountId,
+        category: scheduleForm.category.trim() || defaultCategory.name,
+        target: scheduleForm.target,
+        note: scheduleForm.note,
+        frequency: scheduleForm.frequency,
+        startDate: scheduleForm.startDate,
+        active: scheduleForm.active
+      };
+      if (scheduleForm.id && scheduleForm.nextRunDate) payload.nextRunDate = scheduleForm.nextRunDate;
+      if (scheduleForm.id) await ledgerApi.updateSchedule(scheduleForm.id, payload);
+      else await ledgerApi.createSchedule(payload);
+      ui.scheduleModalOpen = false;
+      await loadState();
+    } catch (error) {
+      errors.schedule = error.message;
+    }
+  }
+
+  async function toggleSchedule(id, active) {
+    await ledgerApi.toggleSchedule(id, active);
+    await loadState();
+  }
+
+  async function deleteSchedule(id) {
+    if (!confirm("确定删除这条定时记账吗？已生成的流水不会删除。")) return;
+    await ledgerApi.deleteSchedule(id);
+    await loadState();
+  }
+
   function resetAccountForm(account = null) {
     errors.account = "";
     accountForm.id = account?.id || "";
@@ -232,6 +321,7 @@ export function useLedger() {
     ui,
     transactionForm,
     accountForm,
+    scheduleForm,
     errors,
     totalBalance,
     periodIncome,
@@ -241,6 +331,7 @@ export function useLedger() {
     expenseCount,
     recentTransactions,
     filteredTransactions,
+    scheduleRows,
     categoryRows,
     trendRows,
     money,
@@ -251,6 +342,10 @@ export function useLedger() {
     openTransactionModal,
     saveTransaction,
     deleteTransaction,
+    openScheduleModal,
+    saveSchedule,
+    toggleSchedule,
+    deleteSchedule,
     openAccountModal,
     saveAccount,
     deleteAccount

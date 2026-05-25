@@ -1,9 +1,9 @@
 import { Hono } from "hono";
-import { readState } from "../data/jsonStore.js";
+import { readStateWithSchedules } from "../services/scheduleService.js";
 
 export const stateRouter = new Hono();
 
 stateRouter.get("/", async (c) => {
-  const state = await readState();
+  const state = await readStateWithSchedules();
   return c.json(state);
 });

@@ -1,0 +1,104 @@
+<script setup>
+import { computed } from "vue";
+import { categoryPresets, defaultCategory, scheduleFrequencyOptions } from "../../constants/ledger";
+
+const emit = defineEmits(["close", "submit"]);
+
+const props = defineProps({
+  accounts: {
+    type: Array,
+    required: true
+  },
+  error: {
+    type: String,
+    default: ""
+  },
+  form: {
+    type: Object,
+    required: true
+  },
+  open: {
+    type: Boolean,
+    required: true
+  }
+});
+
+const visibleCategories = computed(() => [defaultCategory, ...(categoryPresets[props.form.type] || [])]);
+
+function selectCategory(category) {
+  props.form.category = category.name === defaultCategory.name ? "" : category.name;
+}
+
+function isSelected(category) {
+  const value = props.form.category.trim() || defaultCategory.name;
+  return value === category.name;
+}
+</script>
+
+<template>
+  <div v-if="open" class="modal-backdrop">
+    <form class="modal-card" @submit.prevent="emit('submit')">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">Schedule</p>
+          <h2>{{ form.id ? "编辑定时记账" : "新增定时记账" }}</h2>
+        </div>
+        <button class="icon-button" type="button" aria-label="关闭" @click="emit('close')">×</button>
+      </div>
+      <div class="type-toggle" role="group" aria-label="记账类型">
+        <button type="button" class="type-option" :class="{ 'is-active': form.type === 'expense' }" @click="form.type = 'expense'">支出</button>
+        <button type="button" class="type-option" :class="{ 'is-active': form.type === 'income' }" @click="form.type = 'income'">收入</button>
+      </div>
+      <div class="form-grid">
+        <label><span>金额</span><input v-model="form.amount" type="number" min="0.01" step="0.01" required placeholder="0.00" /></label>
+        <label>
+          <span>频率</span>
+          <select v-model="form.frequency" required>
+            <option v-for="option in scheduleFrequencyOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+          </select>
+        </label>
+        <label><span>开始日期</span><input v-model="form.startDate" type="date" required /></label>
+        <label>
+          <span>账户</span>
+          <select v-model="form.accountId" required>
+            <option v-for="account in accounts" :key="account.id" :value="account.id">{{ account.name }}</option>
+          </select>
+        </label>
+        <div class="full-field category-field">
+          <div class="field-label-row">
+            <span>分类</span>
+            <span class="field-hint">可不选，保存为未分类</span>
+          </div>
+          <div class="category-picker">
+            <button
+              v-for="category in visibleCategories"
+              :key="category.name"
+              type="button"
+              class="category-chip"
+              :class="[`tone-${category.tone}`, { 'is-active': isSelected(category) }]"
+              @click="selectCategory(category)"
+            >
+              <span class="category-icon">{{ category.icon }}</span>
+              <span class="category-chip-text">{{ category.name }}</span>
+            </button>
+          </div>
+          <label class="custom-category">
+            <span>自定义分类</span>
+            <input v-model="form.category" placeholder="输入自己的分类，或留空使用未分类" />
+          </label>
+        </div>
+        <label class="full-field"><span>对象/用途</span><input v-model="form.target" placeholder="例如：房租、工资、会员订阅" /></label>
+        <label class="full-field"><span>备注</span><textarea v-model="form.note" rows="3" placeholder="可选"></textarea></label>
+        <label class="schedule-active-toggle full-field">
+          <input v-model="form.active" type="checkbox" />
+          <span>启用这条定时记账</span>
+        </label>
+      </div>
+      <p class="form-error">{{ error }}</p>
+      <div class="modal-actions">
+        <button class="ghost-button" type="button" @click="emit('close')">取消</button>
+        <button class="primary-button" type="submit">保存</button>
+      </div>
+    </form>
+  </div>
+</template>

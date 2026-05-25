@@ -7,7 +7,8 @@ const stateFile = join(paths.dataDir, "state.json");
 function defaultState() {
   return {
     accounts: [],
-    transactions: []
+    transactions: [],
+    schedules: []
   };
 }
 
@@ -16,7 +17,8 @@ function normalizeState(state) {
     ...defaultState(),
     ...state,
     accounts: Array.isArray(state?.accounts) ? state.accounts : [],
-    transactions: Array.isArray(state?.transactions) ? state.transactions : []
+    transactions: Array.isArray(state?.transactions) ? state.transactions : [],
+    schedules: Array.isArray(state?.schedules) ? state.schedules : []
   };
 }
 

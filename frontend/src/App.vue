@@ -2,8 +2,10 @@
 import AccountsView from "./components/AccountsView.vue";
 import AppHeader from "./components/AppHeader.vue";
 import DashboardView from "./components/DashboardView.vue";
+import SchedulesView from "./components/SchedulesView.vue";
 import TransactionsView from "./components/TransactionsView.vue";
 import AccountModal from "./components/modals/AccountModal.vue";
+import ScheduleModal from "./components/modals/ScheduleModal.vue";
 import TransactionModal from "./components/modals/TransactionModal.vue";
 import { useLedger } from "./composables/useLedger";
 
@@ -20,6 +22,7 @@ const ledger = useLedger();
 
       <DashboardView v-show="ledger.state.activeView === 'dashboard'" :ledger="ledger" />
       <TransactionsView v-show="ledger.state.activeView === 'transactions'" :ledger="ledger" />
+      <SchedulesView v-show="ledger.state.activeView === 'schedules'" :ledger="ledger" />
       <AccountsView v-show="ledger.state.activeView === 'accounts'" :ledger="ledger" />
     </main>
 
@@ -38,6 +41,15 @@ const ledger = useLedger();
       :open="ledger.ui.accountModalOpen"
       @close="ledger.ui.accountModalOpen = false"
       @submit="ledger.saveAccount"
+    />
+
+    <ScheduleModal
+      :accounts="ledger.state.accounts"
+      :error="ledger.errors.schedule"
+      :form="ledger.scheduleForm"
+      :open="ledger.ui.scheduleModalOpen"
+      @close="ledger.ui.scheduleModalOpen = false"
+      @submit="ledger.saveSchedule"
     />
   </div>
 </template>
