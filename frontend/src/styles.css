@@ -484,9 +484,82 @@ textarea:focus {
 
 .filters {
   display: grid;
-  grid-template-columns: 140px 200px minmax(220px, 1fr);
+  grid-template-columns: repeat(4, minmax(130px, 1fr));
   gap: 10px;
   margin-bottom: 12px;
+}
+
+.quick-ledger-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.quick-ledger-form {
+  display: grid;
+  grid-template-columns: 160px minmax(130px, 1fr) minmax(150px, 1fr) minmax(150px, 1fr) minmax(150px, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.quick-ledger-form .type-toggle {
+  margin-bottom: 0;
+}
+
+.template-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.modal-template-strip {
+  margin-bottom: 12px;
+}
+
+.template-item {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.template-pill {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--border);
+  border-radius: 8px 0 0 8px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 0 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.modal-template-strip .template-pill {
+  border-radius: 8px;
+}
+
+.template-pill strong {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.template-delete {
+  width: 30px;
+  min-height: 34px;
+  border: 1px solid var(--border);
+  border-left: 0;
+  border-radius: 0 8px 8px 0;
+  background: var(--surface);
+  color: var(--negative);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.compact-error {
+  min-height: 0;
+  margin-top: 0;
 }
 
 .table-wrap {
@@ -1043,7 +1116,8 @@ td {
   .summary-grid,
   .content-grid,
   .account-grid,
-  .schedule-grid {
+  .schedule-grid,
+  .quick-ledger-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1091,6 +1165,7 @@ td {
   .account-grid,
   .schedule-grid,
   .filters,
+  .quick-ledger-form,
   .form-grid {
     grid-template-columns: 1fr;
   }

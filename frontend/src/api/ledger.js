@@ -4,6 +4,9 @@ export const ledgerApi = {
   getState() {
     return request("/api/state");
   },
+  exportState() {
+    return request("/api/state/export");
+  },
   createAccount(payload) {
     return request("/api/accounts", { method: "POST", body: JSON.stringify(payload) });
   },
@@ -33,5 +36,14 @@ export const ledgerApi = {
   },
   deleteSchedule(id) {
     return request(`/api/schedules/${id}`, { method: "DELETE" });
+  },
+  createTemplate(payload) {
+    return request("/api/templates", { method: "POST", body: JSON.stringify(payload) });
+  },
+  updateTemplate(id, payload) {
+    return request(`/api/templates/${id}`, { method: "PUT", body: JSON.stringify(payload) });
+  },
+  deleteTemplate(id) {
+    return request(`/api/templates/${id}`, { method: "DELETE" });
   }
 };

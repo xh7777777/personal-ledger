@@ -10,6 +10,7 @@ export function useLedger() {
     accounts: [],
     transactions: [],
     schedules: [],
+    templates: [],
     loading: true,
     error: "",
     activeView: "dashboard",
@@ -19,6 +20,11 @@ export function useLedger() {
     filters: {
       type: "all",
       accountId: "all",
+      category: "all",
+      dateStart: "",
+      dateEnd: "",
+      amountMin: "",
+      amountMax: "",
       keyword: ""
     }
   });
@@ -62,6 +68,16 @@ export function useLedger() {
     active: true
   });
 
+  const quickForm = reactive({
+    type: "expense",
+    amount: "",
+    date: todayIso(),
+    accountId: "",
+    category: "",
+    target: "",
+    note: ""
+  });
+
   const errors = reactive({
     transaction: "",
     account: "",
@@ -83,6 +99,11 @@ export function useLedger() {
     return [...state.transactions]
       .filter((transaction) => state.filters.type === "all" || transaction.type === state.filters.type)
       .filter((transaction) => state.filters.accountId === "all" || transaction.accountId === state.filters.accountId)
+      .filter((transaction) => state.filters.category === "all" || categoryDisplay(transaction.category).name === state.filters.category)
+      .filter((transaction) => !state.filters.dateStart || transaction.date >= state.filters.dateStart)
+      .filter((transaction) => !state.filters.dateEnd || transaction.date <= state.filters.dateEnd)
+      .filter((transaction) => state.filters.amountMin === "" || Number(transaction.amount) >= Number(state.filters.amountMin))
+      .filter((transaction) => state.filters.amountMax === "" || Number(transaction.amount) <= Number(state.filters.amountMax))
       .filter((transaction) => {
         if (!keyword) return true;
         const category = categoryDisplay(transaction.category).name;
@@ -102,6 +123,20 @@ export function useLedger() {
         accountName: accountName(schedule.accountId)
       }))
   );
+
+  const templateRows = computed(() =>
+    [...state.templates].map((template) => ({
+      ...template,
+      categoryMeta: categoryDisplay(template.category),
+      accountName: template.accountId ? accountName(template.accountId) : "未指定账户"
+    }))
+  );
+
+  const transactionCategoryOptions = computed(() => {
+    const names = new Set(state.transactions.map((transaction) => categoryDisplay(transaction.category).name));
+    state.templates.forEach((template) => names.add(categoryDisplay(template.category).name));
+    return [...names].sort((a, b) => a.localeCompare(b, "zh-Hans-CN"));
+  });
 
   const categoryRows = computed(() => {
     const totals = scopedTransactions.value
@@ -156,6 +191,8 @@ export function useLedger() {
       state.accounts = data.accounts;
       state.transactions = data.transactions;
       state.schedules = data.schedules || [];
+      state.templates = data.templates || [];
+      if (!quickForm.accountId) resetQuickForm();
     } catch (error) {
       state.error = error.message;
     } finally {
@@ -173,6 +210,29 @@ export function useLedger() {
     transactionForm.category = transaction?.category || "";
     transactionForm.target = transaction?.target || "";
     transactionForm.note = transaction?.note || "";
+  }
+
+  function recentAccountId() {
+    return [...state.transactions].sort(sortTransactions)[0]?.accountId || state.accounts[0]?.id || "";
+  }
+
+  function resetQuickForm() {
+    quickForm.type = "expense";
+    quickForm.amount = "";
+    quickForm.date = todayIso();
+    quickForm.accountId = recentAccountId();
+    quickForm.category = "";
+    quickForm.target = "";
+    quickForm.note = "";
+  }
+
+  function applyTemplateToForm(template, form = transactionForm) {
+    form.type = template.type;
+    form.amount = template.amount || "";
+    form.accountId = template.accountId || recentAccountId();
+    form.category = template.category || "";
+    form.target = template.target || "";
+    form.note = template.note || "";
   }
 
   function openTransactionModal(transaction = null) {
@@ -204,6 +264,62 @@ export function useLedger() {
     } catch (error) {
       errors.transaction = error.message;
     }
+  }
+
+  async function saveQuickTransaction() {
+    errors.transaction = "";
+    try {
+      const payload = {
+        type: quickForm.type,
+        amount: Number(quickForm.amount),
+        date: quickForm.date || todayIso(),
+        accountId: quickForm.accountId || recentAccountId(),
+        category: quickForm.category.trim() || defaultCategory.name,
+        target: quickForm.target,
+        note: quickForm.note
+      };
+      await ledgerApi.createTransaction(payload);
+      resetQuickForm();
+      await loadState();
+    } catch (error) {
+      errors.transaction = error.message;
+    }
+  }
+
+  function copyTransaction(transaction) {
+    resetTransactionForm({ ...transaction, id: "", date: todayIso() });
+    ui.transactionModalOpen = true;
+  }
+
+  async function createTemplateFromTransaction(transaction) {
+    const name = transaction.target || categoryDisplay(transaction.category).name;
+    await ledgerApi.createTemplate({
+      name,
+      type: transaction.type,
+      amount: transaction.amount,
+      accountId: transaction.accountId,
+      category: transaction.category,
+      target: transaction.target,
+      note: transaction.note
+    });
+    await loadState();
+  }
+
+  async function deleteTemplate(id) {
+    if (!confirm("确定删除这个记账模板吗？历史流水不会受影响。")) return;
+    await ledgerApi.deleteTemplate(id);
+    await loadState();
+  }
+
+  async function exportLedger() {
+    const data = await ledgerApi.exportState();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `personal-ledger-${todayIso()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   async function deleteTransaction(id) {
@@ -322,6 +438,7 @@ export function useLedger() {
     transactionForm,
     accountForm,
     scheduleForm,
+    quickForm,
     errors,
     totalBalance,
     periodIncome,
@@ -332,6 +449,8 @@ export function useLedger() {
     recentTransactions,
     filteredTransactions,
     scheduleRows,
+    templateRows,
+    transactionCategoryOptions,
     categoryRows,
     trendRows,
     money,
@@ -341,6 +460,13 @@ export function useLedger() {
     setView,
     openTransactionModal,
     saveTransaction,
+    saveQuickTransaction,
+    copyTransaction,
+    createTemplateFromTransaction,
+    deleteTemplate,
+    applyTemplateToForm,
+    resetQuickForm,
+    exportLedger,
     deleteTransaction,
     openScheduleModal,
     saveSchedule,

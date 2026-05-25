@@ -14,7 +14,7 @@ const ledger = useLedger();
 
 <template>
   <div class="app-shell">
-    <AppHeader :active-view="ledger.state.activeView" @add-transaction="ledger.openTransactionModal()" @change-view="ledger.setView" />
+    <AppHeader :active-view="ledger.state.activeView" @add-transaction="ledger.openTransactionModal()" @change-view="ledger.setView" @export-ledger="ledger.exportLedger" />
 
     <main>
       <div v-if="ledger.state.error" class="panel error-panel">{{ ledger.state.error }}</div>
@@ -31,6 +31,8 @@ const ledger = useLedger();
       :error="ledger.errors.transaction"
       :form="ledger.transactionForm"
       :open="ledger.ui.transactionModalOpen"
+      :templates="ledger.templateRows"
+      @apply-template="ledger.applyTemplateToForm($event, ledger.transactionForm)"
       @close="ledger.ui.transactionModalOpen = false"
       @submit="ledger.saveTransaction"
     />

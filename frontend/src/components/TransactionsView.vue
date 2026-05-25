@@ -33,6 +33,17 @@ defineProps({
             <option v-for="account in ledger.state.accounts" :key="account.id" :value="account.id">{{ account.name }}</option>
           </select>
         </label>
+        <label>
+          <span>分类</span>
+          <select v-model="ledger.state.filters.category">
+            <option value="all">全部分类</option>
+            <option v-for="category in ledger.transactionCategoryOptions" :key="category" :value="category">{{ category }}</option>
+          </select>
+        </label>
+        <label><span>开始日期</span><input v-model="ledger.state.filters.dateStart" type="date" /></label>
+        <label><span>结束日期</span><input v-model="ledger.state.filters.dateEnd" type="date" /></label>
+        <label><span>最小金额</span><input v-model="ledger.state.filters.amountMin" type="number" min="0" step="0.01" placeholder="0.00" /></label>
+        <label><span>最大金额</span><input v-model="ledger.state.filters.amountMax" type="number" min="0" step="0.01" placeholder="不限" /></label>
         <label><span>关键词</span><input v-model="ledger.state.filters.keyword" type="search" placeholder="分类、对象、备注" /></label>
       </div>
       <div class="table-wrap">
@@ -58,6 +69,8 @@ defineProps({
               <td>
                 <div class="row-actions">
                   <button class="text-button" @click="ledger.openTransactionModal(transaction)">编辑</button>
+                  <button class="text-button" @click="ledger.copyTransaction(transaction)">复制</button>
+                  <button class="text-button" @click="ledger.createTemplateFromTransaction(transaction)">存模板</button>
                   <button class="text-button delete" @click="ledger.deleteTransaction(transaction.id)">删除</button>
                 </div>
               </td>

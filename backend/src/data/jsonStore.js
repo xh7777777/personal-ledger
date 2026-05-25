@@ -8,7 +8,8 @@ function defaultState() {
   return {
     accounts: [],
     transactions: [],
-    schedules: []
+    schedules: [],
+    templates: []
   };
 }
 
@@ -18,9 +19,12 @@ function normalizeState(state) {
     ...state,
     accounts: Array.isArray(state?.accounts) ? state.accounts : [],
     transactions: Array.isArray(state?.transactions) ? state.transactions : [],
-    schedules: Array.isArray(state?.schedules) ? state.schedules : []
+    schedules: Array.isArray(state?.schedules) ? state.schedules : [],
+    templates: Array.isArray(state?.templates) ? state.templates : []
   };
 }
+
+let writeQueue = Promise.resolve();
 
 export async function readState() {
   try {
@@ -34,6 +38,21 @@ export async function readState() {
 }
 
 export async function writeState(state) {
-  await mkdir(paths.dataDir, { recursive: true });
-  await writeFile(stateFile, `${JSON.stringify(normalizeState(state), null, 2)}\n`);
+  writeQueue = writeQueue.then(async () => {
+    await mkdir(paths.dataDir, { recursive: true });
+    await writeFile(stateFile, `${JSON.stringify(normalizeState(state), null, 2)}\n`);
+  });
+  return writeQueue;
+}
+
+export async function updateState(mutator) {
+  let nextState;
+  writeQueue = writeQueue.then(async () => {
+    const state = await readState();
+    nextState = (await mutator(state)) || state;
+    await mkdir(paths.dataDir, { recursive: true });
+    await writeFile(stateFile, `${JSON.stringify(normalizeState(nextState), null, 2)}\n`);
+  });
+  await writeQueue;
+  return normalizeState(nextState);
 }

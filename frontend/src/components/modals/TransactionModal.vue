@@ -2,12 +2,16 @@
 import { computed, ref, watch } from "vue";
 import { categoryPresets, defaultCategory } from "../../constants/ledger";
 
-const emit = defineEmits(["close", "submit"]);
+const emit = defineEmits(["close", "submit", "apply-template"]);
 
 const props = defineProps({
   accounts: {
     type: Array,
     required: true
+  },
+  templates: {
+    type: Array,
+    default: () => []
   },
   error: {
     type: String,
@@ -57,6 +61,12 @@ function isSelected(category) {
       <div class="type-toggle" role="group" aria-label="流水类型">
         <button type="button" class="type-option" :class="{ 'is-active': form.type === 'expense' }" @click="form.type = 'expense'">支出</button>
         <button type="button" class="type-option" :class="{ 'is-active': form.type === 'income' }" @click="form.type = 'income'">收入</button>
+      </div>
+      <div v-if="templates.length" class="template-strip modal-template-strip" aria-label="使用模板">
+        <button v-for="template in templates" :key="template.id" class="template-pill" type="button" @click="emit('apply-template', template)">
+          <span class="category-icon-badge" :class="`tone-${template.categoryMeta.tone}`">{{ template.categoryMeta.icon }}</span>
+          <span>{{ template.name }}</span>
+        </button>
       </div>
       <div class="form-grid">
         <label><span>金额</span><input v-model="form.amount" type="number" min="0.01" step="0.01" required placeholder="0.00" /></label>

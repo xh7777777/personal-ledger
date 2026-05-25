@@ -1,5 +1,6 @@
 <script setup>
 import CategoryExpenseList from "./dashboard/CategoryExpenseList.vue";
+import QuickLedgerPanel from "./dashboard/QuickLedgerPanel.vue";
 import RangeToolbar from "./dashboard/RangeToolbar.vue";
 import RecentTransactions from "./dashboard/RecentTransactions.vue";
 import SummaryCards from "./dashboard/SummaryCards.vue";
@@ -16,6 +17,7 @@ defineProps({
 <template>
   <section class="view">
     <RangeToolbar :state="ledger.state" />
+    <QuickLedgerPanel :ledger="ledger" />
     <SummaryCards
       :account-count="ledger.state.accounts.length"
       :expense-count="ledger.expenseCount"
